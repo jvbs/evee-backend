@@ -12,14 +12,14 @@ module.exports = {
     // },
     client: "sqlite3",
     connection: {
-      filename: `${__dirname}/src/database/database.sqlite`,
+      filename: `${__dirname}/dist/database/database.sqlite`,
     },
     migrations: {
       tableName: "knex_migrations",
-      directory: `${__dirname}/src/database/migrations`,
+      directory: `${__dirname}/dist/database/migrations`,
     },
     seeds: {
-      directory: `${__dirname}/src/database/seeds`,
+      directory: `${__dirname}/dist/database/seeds`,
     },
   },
 
@@ -50,14 +50,14 @@ module.exports = {
     // },
     client: "sqlite3",
     connection: {
-      filename: `${__dirname}/src/database/database.sqlite`,
+      filename: `${__dirname}/dist/database/database.sqlite`,
     },
     migrations: {
       tableName: "knex_migrations",
-      directory: `${__dirname}/src/database/migrations`,
+      directory: `${__dirname}/dist/database/migrations`,
     },
     seeds: {
-      directory: `${__dirname}/src/database/seeds`,
+      directory: `${__dirname}/dist/database/seeds`,
     },
   },
 };
