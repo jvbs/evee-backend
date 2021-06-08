@@ -12,14 +12,14 @@ module.exports = {
     // },
     client: "sqlite3",
     connection: {
-      filename: dirname + "/dist/database/database.sqlite",
+      filename: __dirname + "/dist/database/database.sqlite",
     },
     migrations: {
       tableName: "knex_migrations",
-      directory: dirname + "/dist/database/migrations",
+      directory: __dirname + "/dist/database/migrations",
     },
     seeds: {
-      directory: dirname + "/dist/database/seeds",
+      directory: __dirname + "/dist/database/seeds",
     },
   },
   production: {
@@ -33,14 +33,14 @@ module.exports = {
     // },
     client: "sqlite3",
     connection: {
-      filename: dirname + "/dist/database/database.sqlite",
+      filename: __dirname + "/dist/database/database.sqlite",
     },
     migrations: {
       tableName: "knex_migrations",
-      directory: dirname + "/dist/database/migrations",
+      directory: __dirname + "/dist/database/migrations",
     },
     seeds: {
-      directory: dirname + "/dist/database/seeds",
+      directory: __dirname + "/dist/database/seeds",
     },
   },
   // staging: {
