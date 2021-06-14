@@ -117,3 +117,6 @@ dist
 
 # Ignore.vscode
 .vscode
+
+# Ignore Database Sqlite
+src/database/database.sqlite
