@@ -5,7 +5,7 @@ import isAuthenticated from "../middlewares/isAuthenticated";
 const departamentoRouter = Router();
 
 // habilitando o middleware
-departamentoRouter.use(isAuthenticated);
+// departamentoRouter.use(isAuthenticated);
 
 departamentoRouter.get("/", async (request: Request, response: Response) => {
   const departamentos = await knex("departamento").select("*");
