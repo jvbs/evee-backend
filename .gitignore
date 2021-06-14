@@ -120,3 +120,5 @@ dist
 
 # Ignore Database Sqlite
 src/database/database.sqlite
+
+knexfile.ts
