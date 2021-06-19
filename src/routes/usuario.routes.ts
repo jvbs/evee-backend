@@ -90,7 +90,6 @@ usuarioRouter.post(
         nome: Joi.string().required(),
         email: Joi.string().email().required(),
         celular: Joi.string().required(),
-        cargo: Joi.string().required(),
         empresa: Joi.string().required(),
         cnpj: Joi.string().length(14),
         senha: Joi.string().required(),
