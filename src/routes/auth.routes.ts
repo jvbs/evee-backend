@@ -62,7 +62,22 @@ authRouter.get("/check", async (request, response) => {
 authRouter.post("/", async (request, response) => {
   const { email, senha } = request.body;
 
-  const checkUsuario = await knex("usuario").where("email", email).first();
+  const checkUsuario = await knex("usuario")
+    .select(
+      "usuario.id",
+      "usuario.nome",
+      "usuario.cargo",
+      "usuario.email",
+      "usuario.celular",
+      "usuario.senha",
+      { empresaId: "empresa.id" },
+      "empresa.nome_razao_social",
+      "empresa.cnpj"
+    )
+    .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id")
+    .where("email", email)
+    .first();
+
   const checkColaborador = await knex("colaborador")
     .where("email", email)
     .first();
@@ -127,8 +142,12 @@ authRouter.post("/", async (request, response) => {
     user: {
       id: userType === 1 ? checkUsuario.id : checkColaborador.id,
       nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
-      userType: userType === 1 ? "Admin" : checkColaborador.tipo_usuario,
+      userType:
+        userType === 1 ? "Administrador" : checkColaborador.tipo_usuario,
+      cargo: "Administrador",
+      departamento: userType === 1 ? "" : "adicionar",
       email,
+      nome_empresa: checkUsuario.nome_razao_social,
       empresa_id:
         userType === 1 ? checkUsuario.empresa_id : checkColaborador.empresa_id,
     },

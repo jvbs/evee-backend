@@ -15,11 +15,11 @@ colaboradorRouter.use(isAuthenticated);
 type ColaboradorTypes = {
   cpf: string;
   nome: string;
-  data_nascimento: Date;
   email: string;
   senha: string;
   celular: string;
   foto: string;
+  data_nascimento: string;
   tipo_usuario: string;
   departamento_id: Number;
   empresa_id: Number;
@@ -74,7 +74,6 @@ colaboradorRouter.post(
       body: Joi.object().keys({
         cpf: Joi.string().required().length(11),
         nome: Joi.string().required(),
-        data_nascimento: Joi.string().required(),
         email: Joi.string().email().required(),
         celular: Joi.string().required(),
         tipo_usuario: Joi.string()
@@ -94,7 +93,6 @@ colaboradorRouter.post(
     const {
       cpf,
       nome,
-      data_nascimento,
       email,
       celular,
       status,
@@ -123,12 +121,12 @@ colaboradorRouter.post(
     const colaborador: ColaboradorTypes = {
       cpf,
       nome,
-      data_nascimento: data_nascimento.split("/").reverse().join("-"),
       email,
       celular: celular.replace(/\D/g, ""),
       tipo_usuario,
       departamento_id,
       empresa_id,
+      data_nascimento: "1990-01-01",
       cargo_id,
       foto: "usuarioSemFoto.png",
       status: Number(status) === 1 ? true : false,
@@ -157,6 +155,8 @@ colaboradorRouter.post(
         return response
           .status(500)
           .json({ error: "Valor chave já cadastrado." });
+      } else {
+        console.log(error);
       }
     }
   }
