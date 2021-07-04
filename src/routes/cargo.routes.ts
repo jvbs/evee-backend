@@ -5,7 +5,7 @@ import isAuthenticated from "../middlewares/isAuthenticated";
 const cargoRouter = Router();
 
 // habilitando o middleware
-// cargoRouter.use(isAuthenticated);
+cargoRouter.use(isAuthenticated);
 
 cargoRouter.get("/", async (request: Request, response: Response) => {
   const cargos = await knex("cargo").select("*");
