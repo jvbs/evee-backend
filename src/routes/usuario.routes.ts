@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { celebrate, Joi } from "celebrate";
 import { hash } from "bcryptjs";
+import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
 import knex from "../database";
 
 const usuarioRouter = Router();
@@ -110,11 +111,18 @@ usuarioRouter.post(
     // verificando se dados chaves existem
     const checkEmail = await knex("usuario").where("email", email).first();
     const checkCnpj = await knex("empresa").where("cnpj", cnpj).first();
+    const cnpjIsValid: boolean = cnpjValidator.isValid(cnpj);
 
     // caso algum deles exista
+    if (!cnpjIsValid) {
+      return response.status(400).json({
+        error: "CNPJ inválido, verifique e tente novamente.",
+      });
+    }
+
     if (checkEmail || checkCnpj) {
       return response.status(400).json({
-        error: "Demonstração já solicitada | Empresa previamente cadastrada.",
+        error: "Demonstração já solicitada, empresa ou usuário já cadastrados.",
       });
     }
 
