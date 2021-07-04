@@ -42,6 +42,25 @@ colaboradorRouter.get("/", async (request: Request, response: Response) => {
   return response.json(colaborador);
 });
 
+colaboradorRouter.get(
+  "/mentores",
+  async (request: Request, response: Response) => {
+    const colaborador = await knex("colaborador")
+      .select("*")
+      .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+      .leftJoin(
+        "departamento",
+        "colaborador.departamento_id",
+        "=",
+        "departamento.id"
+      )
+      .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+      .where("tipo_usuario", "Mentor");
+
+    return response.json(colaborador);
+  }
+);
+
 colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
   const { id } = request.params;
 
