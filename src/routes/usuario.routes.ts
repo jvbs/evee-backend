@@ -4,6 +4,15 @@ import { hash } from "bcryptjs";
 import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
 import knex from "../database";
 
+function titleizeName(text: string) {
+  let words = text.toLowerCase().split(" ");
+  for (let a = 0; a < words.length; a++) {
+    let w = words[a];
+    words[a] = w[0].toUpperCase() + w.slice(1);
+  }
+  return words.join(" ");
+}
+
 const usuarioRouter = Router();
 
 usuarioRouter.get("/", async (request: Request, response: Response) => {
@@ -136,7 +145,7 @@ usuarioRouter.post(
     const newEmpresa = await knex("empresa").insert(empresa);
 
     const usuario = {
-      nome,
+      nome: titleizeName(nome),
       email,
       celular,
       cargo: "Administrador",
@@ -164,7 +173,7 @@ usuarioRouter.post(
       },
       empresa: {
         id: newEmpresa[0],
-        nome_razao_social: empresa.nome_razao_social,
+        nome_razao_social: titleizeName(empresa.nome_razao_social),
         cnpj: empresa.cnpj,
       },
     });
