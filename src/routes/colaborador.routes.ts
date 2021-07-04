@@ -109,9 +109,16 @@ colaboradorRouter.post(
     const departamentoId = await knex("departamento")
       .where("id", departamento_id)
       .first();
-    // const cpfIsValid: boolean = cpfValidator.isValid(cpf);
+    const cpfColaborador = await knex("colaborador").where("cpf", cpf).first();
+    const cpfIsValid: boolean = cpfValidator.isValid(cpf);
 
-    if (!empresaId || !cargoId || !departamentoId /*|| !cpfIsValid*/) {
+    if (
+      !empresaId ||
+      !cargoId ||
+      !departamentoId ||
+      !cpfIsValid ||
+      cpfColaborador
+    ) {
       return response
         .status(400)
         .json({ error: "Argumentos inválidos para a requisição." });
