@@ -159,8 +159,6 @@ colaboradorRouter.post(
     const cpfColaborador = await knex("colaborador").where("cpf", cpf).first();
     const cpfIsValid: boolean = cpfValidator.isValid(cpf);
 
-    console.log(empresaId, cargoId, departamentoId, cpfIsValid, cpfColaborador);
-
     if (
       !empresaId ||
       !cargoId ||

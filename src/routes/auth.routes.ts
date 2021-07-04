@@ -149,7 +149,7 @@ authRouter.post("/", async (request, response) => {
       email,
       nome_empresa: checkUsuario.nome_razao_social,
       empresa_id:
-        userType === 1 ? checkUsuario.empresa_id : checkColaborador.empresa_id,
+        userType === 1 ? checkUsuario.empresaId : checkColaborador.empresaId,
     },
   };
 
