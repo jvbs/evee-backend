@@ -12,8 +12,8 @@ const colaboradorRouter = Router();
 function titleizeName(text: string) {
   let words = text.toLowerCase().split(" ");
   for (let a = 0; a < words.length; a++) {
-      let w = words[a];
-      words[a] = w[0].toUpperCase() + w.slice(1);
+    let w = words[a];
+    words[a] = w[0].toUpperCase() + w.slice(1);
   }
   return words.join(" ");
 }
@@ -70,6 +70,25 @@ colaboradorRouter.get(
   }
 );
 
+colaboradorRouter.get(
+  "/mentorados",
+  async (request: Request, response: Response) => {
+    const colaborador = await knex("colaborador")
+      .select("*")
+      .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+      .leftJoin(
+        "departamento",
+        "colaborador.departamento_id",
+        "=",
+        "departamento.id"
+      )
+      .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+      .where("tipo_usuario", "Mentorado");
+
+    return response.json(colaborador);
+  }
+);
+
 colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
   const { id } = request.params;
 
@@ -94,7 +113,6 @@ colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
 
   return response.json(colaborador);
 });
-
 
 colaboradorRouter.post(
   "/",
@@ -140,6 +158,8 @@ colaboradorRouter.post(
       .first();
     const cpfColaborador = await knex("colaborador").where("cpf", cpf).first();
     const cpfIsValid: boolean = cpfValidator.isValid(cpf);
+
+    console.log(empresaId, cargoId, departamentoId, cpfIsValid, cpfColaborador);
 
     if (
       !empresaId ||
