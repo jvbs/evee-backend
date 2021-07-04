@@ -9,6 +9,15 @@ import { hash } from "bcryptjs";
 
 const colaboradorRouter = Router();
 
+function titleizeName(text: string) {
+  let words = text.toLowerCase().split(" ");
+  for (let a = 0; a < words.length; a++) {
+      let w = words[a];
+      words[a] = w[0].toUpperCase() + w.slice(1);
+  }
+  return words.join(" ");
+}
+
 // habilitando middleware
 colaboradorRouter.use(isAuthenticated);
 
@@ -86,6 +95,7 @@ colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
   return response.json(colaborador);
 });
 
+
 colaboradorRouter.post(
   "/",
   celebrate(
@@ -146,7 +156,7 @@ colaboradorRouter.post(
     const hashedPassword = await hash(senha, 8);
     const colaborador: ColaboradorTypes = {
       cpf,
-      nome,
+      nome: titleizeName(nome),
       email,
       celular: celular.replace(/\D/g, ""),
       tipo_usuario,
