@@ -43,8 +43,6 @@ authRouter.get("/check", async (request, response) => {
         .first();
     }
 
-    console.log(dbUser);
-
     const userReturn = {
       token,
       user: {
@@ -165,8 +163,7 @@ authRouter.post("/", async (request, response) => {
     user: {
       id: userType === 1 ? checkUsuario.id : checkColaborador.id,
       nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
-      userType:
-        userType === 1 ? "Administrador" : checkColaborador.tipo_usuario,
+      userType: userType === 1 ? "Admin" : checkColaborador.tipo_usuario,
       cargo: "Administrador",
       departamento: userType === 1 ? "Administrador" : "adicionar",
       email,
