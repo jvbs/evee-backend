@@ -23,7 +23,11 @@ authRouter.get("/check", async (request, response) => {
 
     if (Number(userType) === 1) {
       // usuario
-      var dbUser = await knex("usuario").where("id", userId).first();
+      var dbUser = await knex("usuario")
+        .select("*")
+        .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id")
+        .where("usuario.id", userId)
+        .first();
     } else {
       // colaborador
       var dbUser = await knex("colaborador")
@@ -34,9 +38,12 @@ authRouter.get("/check", async (request, response) => {
           "departamento.id"
         )
         .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+        .leftJoin("empresa", "colaborador.empresa_id", "=", "cargo.id")
         .where("id", userId)
         .first();
     }
+
+    console.log(dbUser);
 
     const userReturn = {
       token,
@@ -50,7 +57,23 @@ authRouter.get("/check", async (request, response) => {
           Number(userType) === 1 ? "Administrador" : dbUser.nome_departamento,
         empresa_id:
           Number(userType) === 1 ? dbUser.empresa_id : dbUser.empresa_id,
+        nome_empresa:
+          Number(userType) === 1
+            ? dbUser.nome_razao_social
+            : dbUser.nome_razao_social,
       },
+      // user2: {
+      //   id: userType === 1 ? checkUsuario.id : checkColaborador.id,
+      //   nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
+      //   userType:
+      //     userType === 1 ? "Administrador" : checkColaborador.tipo_usuario,
+      //   cargo: "Administrador",
+      //   departamento: userType === 1 ? "" : "adicionar",
+      //   email,
+      //   nome_empresa: checkUsuario.nome_razao_social,
+      //   empresa_id:
+      //     userType === 1 ? checkUsuario.empresaId : checkColaborador.empresaId,
+      // },
     };
 
     return response.json(userReturn);
@@ -145,7 +168,7 @@ authRouter.post("/", async (request, response) => {
       userType:
         userType === 1 ? "Administrador" : checkColaborador.tipo_usuario,
       cargo: "Administrador",
-      departamento: userType === 1 ? "" : "adicionar",
+      departamento: userType === 1 ? "Administrador" : "adicionar",
       email,
       nome_empresa: checkUsuario.nome_razao_social,
       empresa_id:
