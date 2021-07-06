@@ -183,8 +183,6 @@ authRouter.post("/", async (request, response) => {
     },
   };
 
-  console.log(userReturn);
-
   return response.json(userReturn);
 });
 
