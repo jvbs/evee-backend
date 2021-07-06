@@ -31,15 +31,23 @@ authRouter.get("/check", async (request, response) => {
     } else {
       // colaborador
       var dbUser = await knex("colaborador")
+        .select(
+          "colaborador.*",
+          { empresaId: "empresa.id" },
+          "empresa.nome_razao_social",
+          "empresa.cnpj",
+          "cargo.nome_cargo",
+          "departamento.nome_departamento"
+        )
+        .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+        .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
         .leftJoin(
           "departamento",
           "colaborador.departamento_id",
           "=",
           "departamento.id"
         )
-        .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
-        .leftJoin("empresa", "colaborador.empresa_id", "=", "cargo.id")
-        .where("id", userId)
+        .where("colaborador.id", userId)
         .first();
     }
 
@@ -60,19 +68,9 @@ authRouter.get("/check", async (request, response) => {
             ? dbUser.nome_razao_social
             : dbUser.nome_razao_social,
       },
-      // user2: {
-      //   id: userType === 1 ? checkUsuario.id : checkColaborador.id,
-      //   nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
-      //   userType:
-      //     userType === 1 ? "Administrador" : checkColaborador.tipo_usuario,
-      //   cargo: "Administrador",
-      //   departamento: userType === 1 ? "" : "adicionar",
-      //   email,
-      //   nome_empresa: checkUsuario.nome_razao_social,
-      //   empresa_id:
-      //     userType === 1 ? checkUsuario.empresaId : checkColaborador.empresaId,
-      // },
     };
+
+    console.log(userReturn);
 
     return response.json(userReturn);
   } catch (error) {
@@ -100,6 +98,15 @@ authRouter.post("/", async (request, response) => {
     .first();
 
   const checkColaborador = await knex("colaborador")
+    .select(
+      "colaborador.*",
+      { empresaId: "empresa.id" },
+      "empresa.nome_razao_social",
+      "empresa.cnpj",
+      "cargo.nome_cargo"
+    )
+    .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+    .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
     .where("email", email)
     .first();
 
@@ -164,14 +171,19 @@ authRouter.post("/", async (request, response) => {
       id: userType === 1 ? checkUsuario.id : checkColaborador.id,
       nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
       userType: userType === 1 ? "Admin" : checkColaborador.tipo_usuario,
-      cargo: "Administrador",
+      cargo: userType === 1 ? "Administrador" : checkColaborador.nome_cargo,
       departamento: userType === 1 ? "Administrador" : "adicionar",
       email,
-      nome_empresa: checkUsuario.nome_razao_social,
+      nome_empresa:
+        userType === 1
+          ? checkUsuario.nome_razao_social
+          : checkColaborador.nome_razao_social,
       empresa_id:
         userType === 1 ? checkUsuario.empresaId : checkColaborador.empresaId,
     },
   };
+
+  console.log(userReturn);
 
   return response.json(userReturn);
 });
