@@ -1,6 +1,6 @@
 import { celebrate, Joi } from "celebrate";
 import { Router, Request, Response, NextFunction } from "express";
-import password from "secure-random-password";
+// import password from "secure-random-password";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 
 import isAuthenticated from "../middlewares/isAuthenticated";
@@ -37,6 +37,24 @@ type ColaboradorTypes = {
 };
 
 colaboradorRouter.get("/", async (request: Request, response: Response) => {
+  const { empresa_id } = request.query;
+
+  if (!empresa_id) {
+    return response.status(400).json({
+      message: "Argumentos inválidos para a requisição.",
+    });
+  }
+
+  const checkEmpresa = await knex("empresa")
+    .where("id", Number(empresa_id))
+    .first();
+
+  if (!checkEmpresa) {
+    return response.status(400).json({
+      message: "Empresa inválida.",
+    });
+  }
+
   const colaborador = await knex("colaborador")
     .select("*")
     .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
@@ -46,7 +64,8 @@ colaboradorRouter.get("/", async (request: Request, response: Response) => {
       "=",
       "departamento.id"
     )
-    .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id");
+    .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+    .where("colaborador.empresa_id", Number(empresa_id));
 
   return response.json(colaborador);
 });
