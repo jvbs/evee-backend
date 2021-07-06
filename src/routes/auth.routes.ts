@@ -70,8 +70,6 @@ authRouter.get("/check", async (request, response) => {
       },
     };
 
-    console.log(userReturn);
-
     return response.json(userReturn);
   } catch (error) {
     return response.status(401).json({ message: "JWT Token Inválido." });
