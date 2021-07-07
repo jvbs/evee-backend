@@ -97,7 +97,12 @@ colaboradorRouter.get(
     }
 
     const colaborador = await knex("colaborador")
-      .select("*")
+      .select(
+        "colaborador.*",
+        "empresa.nome_razao_social",
+        "departamento.nome_departamento",
+        "cargo.nome_cargo"
+      )
       .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
       .leftJoin(
         "departamento",
@@ -134,7 +139,12 @@ colaboradorRouter.get(
     }
 
     const colaborador = await knex("colaborador")
-      .select("*")
+      .select(
+        "colaborador.*",
+        "empresa.nome_razao_social",
+        "departamento.nome_departamento",
+        "cargo.nome_cargo"
+      )
       .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
       .leftJoin(
         "departamento",
