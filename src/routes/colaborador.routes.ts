@@ -118,6 +118,79 @@ colaboradorRouter.get(
 );
 
 colaboradorRouter.get(
+  "/mentor",
+  async (request: Request, response: Response) => {
+    const { empresa_id, mentor_id } = request.query;
+
+    if (!empresa_id || !mentor_id) {
+      return response.status(400).json({
+        message: "Argumentos inválidos para a requisição.",
+      });
+    }
+
+    const checkEmpresa = await knex("empresa")
+      .where("id", Number(empresa_id))
+      .first();
+
+    const checkMentor = await knex("colaborador")
+      .where("id", Number(mentor_id))
+      .first();
+
+    if (!checkEmpresa || !checkMentor) {
+      return response.status(400).json({
+        message: "Empresa ou usuário inválidos.",
+      });
+    }
+
+    const colaborador = await knex("colaborador")
+      .select(
+        "colaborador.*",
+        "empresa.nome_razao_social",
+        "departamento.nome_departamento",
+        "cargo.nome_cargo"
+      )
+      .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+      .leftJoin(
+        "departamento",
+        "colaborador.departamento_id",
+        "=",
+        "departamento.id"
+      )
+      .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+      .where({
+        tipo_usuario: "Mentor",
+        empresa_id: Number(empresa_id),
+        "colaborador.id": Number(mentor_id),
+      })
+      .first();
+
+    return response.json({
+      user: {
+        id: colaborador.id,
+        nome: colaborador.nome,
+        cpf: colaborador.cpf,
+        email: colaborador.email,
+        foto: colaborador.foto,
+        tipo_usuario: colaborador.tipo_usuario,
+        status: colaborador.status,
+      },
+      cargo: {
+        id: colaborador.cargo_id,
+        nome_cargo: colaborador.nome_cargo,
+      },
+      empresa: {
+        id: colaborador.empresa_id,
+        nome_empresa: colaborador.nome_razao_social,
+      },
+      departamento: {
+        id: colaborador.departamento_id,
+        nome_departamento: colaborador.nome_departamento,
+      },
+    });
+  }
+);
+
+colaboradorRouter.get(
   "/mentorados",
   async (request: Request, response: Response) => {
     const { empresa_id } = request.query;
