@@ -180,4 +180,77 @@ usuarioRouter.post(
   }
 );
 
+
+usuarioRouter.put(
+  "/",
+  celebrate(
+    {
+      body: Joi.object().keys({
+        id: Joi.number().required(),
+        nome: Joi.string().required(),
+        email: Joi.string().email().required(),
+        celular: Joi.string().required(),
+      }),
+    },
+    { abortEarly: false }
+  ),
+  async (request: Request, response: Response) => {
+    const {
+      id,
+      nome,
+      email,
+      celular,
+    } = request.body;
+
+
+    // verificando se dados chaves existem
+    const checkUser = await knex("usuario").where("id", id).first();
+
+    // caso algum deles exista
+    if (!checkUser) {
+      return response.status(400).json({
+        error: "Usuário não encontrado.",
+      });
+    }
+
+    const newDadosUsuario = {
+      nome,
+      email,
+      celular
+    }
+
+    const updatedUsuario = await knex("usuario").update(newDadosUsuario).where("id", id);
+
+    if(updatedUsuario){
+      return response.status(200).json({
+        message: "Usuário atualizado com sucesso!"
+      })
+    }
+
+    // const solicitacaoCadastro = {
+    //   usuario_id: newUsuario[0],
+    //   empresa_id: newEmpresa[0],
+    //   status: "1",
+    // };
+
+    // await knex("solicitacao_cadastro").insert(solicitacaoCadastro);
+
+    // return response.status(201).json({
+    //   usuario: {
+    //     id: newUsuario[0],
+    //     nome: usuario.nome,
+    //     email: usuario.email,
+    //     celular: usuario.celular,
+    //     cargo: usuario.cargo,
+    //   },
+    //   empresa: {
+    //     id: newEmpresa[0],
+    //     nome_razao_social: titleizeName(empresa.nome_razao_social),
+    //     cnpj: empresa.cnpj,
+    //   },
+    // });
+  }
+);
+
+
 export default usuarioRouter;

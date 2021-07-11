@@ -435,4 +435,51 @@ colaboradorRouter.post(
   }
 );
 
+
+colaboradorRouter.put(
+  "/",
+  celebrate(
+    {
+      body: Joi.object().keys({
+        id: Joi.number().required(),
+        nome: Joi.string().required(),
+        email: Joi.string().email().required(),
+        celular: Joi.string().required(),
+      }),
+    },
+    { abortEarly: false }
+  ),
+  async (request: Request, response: Response, next: NextFunction) => {
+    const {
+      id,
+      nome,
+      email,
+      celular,
+    } = request.body;
+
+    // Consultando se ID's são validos
+    const checkColaborador = await knex("colaborador").where("id", id).first();
+
+    if (!checkColaborador) {
+      return response
+        .status(400)
+        .json({ error: "Colaborador não encontrado." });
+    }
+
+    const newDadosColaborador = {
+      nome,
+      email,
+      celular
+    }
+
+    const updatedUsuario = await knex("colaborador").update(newDadosColaborador).where("id", id);
+
+    if(updatedUsuario){
+      return response.status(200).json({
+        message: "Colaborador atualizado com sucesso!"
+      })
+    }
+  }
+);
+
 export default colaboradorRouter;

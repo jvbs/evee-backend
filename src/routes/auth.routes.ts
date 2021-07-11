@@ -24,7 +24,11 @@ authRouter.get("/check", async (request, response) => {
     if (Number(userType) === 1) {
       // usuario
       var dbUser = await knex("usuario")
-        .select("*")
+        .select("usuario.*",
+          { empresaId: "empresa.id" },
+          "empresa.nome_razao_social",
+          "empresa.cnpj"
+        )
         .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id")
         .where("usuario.id", userId)
         .first();
