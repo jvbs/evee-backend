@@ -3,6 +3,7 @@ import { celebrate, Joi } from "celebrate";
 import { hash } from "bcryptjs";
 import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
 import knex from "../database";
+import isAuthenticated from "../middlewares/isAuthenticated";
 
 function titleizeName(text: string) {
   let words = text.toLowerCase().split(" ");
@@ -14,6 +15,9 @@ function titleizeName(text: string) {
 }
 
 const usuarioRouter = Router();
+
+// habilitando o middleware
+usuarioRouter.use(isAuthenticated);
 
 usuarioRouter.get("/", async (request: Request, response: Response) => {
   const usuarios = await knex("usuario")
@@ -180,7 +184,6 @@ usuarioRouter.post(
   }
 );
 
-
 usuarioRouter.put(
   "/",
   celebrate(
@@ -195,13 +198,7 @@ usuarioRouter.put(
     { abortEarly: false }
   ),
   async (request: Request, response: Response) => {
-    const {
-      id,
-      nome,
-      email,
-      celular,
-    } = request.body;
-
+    const { id, nome, email, celular } = request.body;
 
     // verificando se dados chaves existem
     const checkUser = await knex("usuario").where("id", id).first();
@@ -216,41 +213,19 @@ usuarioRouter.put(
     const newDadosUsuario = {
       nome,
       email,
-      celular
-    }
+      celular,
+    };
 
-    const updatedUsuario = await knex("usuario").update(newDadosUsuario).where("id", id);
+    const updatedUsuario = await knex("usuario")
+      .update(newDadosUsuario)
+      .where("id", id);
 
-    if(updatedUsuario){
+    if (updatedUsuario) {
       return response.status(200).json({
-        message: "Usuário atualizado com sucesso!"
-      })
+        message: "Usuário atualizado com sucesso!",
+      });
     }
-
-    // const solicitacaoCadastro = {
-    //   usuario_id: newUsuario[0],
-    //   empresa_id: newEmpresa[0],
-    //   status: "1",
-    // };
-
-    // await knex("solicitacao_cadastro").insert(solicitacaoCadastro);
-
-    // return response.status(201).json({
-    //   usuario: {
-    //     id: newUsuario[0],
-    //     nome: usuario.nome,
-    //     email: usuario.email,
-    //     celular: usuario.celular,
-    //     cargo: usuario.cargo,
-    //   },
-    //   empresa: {
-    //     id: newEmpresa[0],
-    //     nome_razao_social: titleizeName(empresa.nome_razao_social),
-    //     cnpj: empresa.cnpj,
-    //   },
-    // });
   }
 );
-
 
 export default usuarioRouter;

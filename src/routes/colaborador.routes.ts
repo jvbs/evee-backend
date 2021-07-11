@@ -312,7 +312,12 @@ colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
   const { id } = request.params;
 
   const colaborador = await knex("colaborador")
-    .select("*")
+    .select(
+      "colaborador.*",
+      "empresa.nome_razao_social",
+      "departamento.nome_departamento",
+      "cargo.nome_cargo"
+    )
     .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
     .leftJoin(
       "departamento",
@@ -330,7 +335,30 @@ colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
       .json({ message: "Colaborador não encontrado." });
   }
 
-  return response.json(colaborador);
+  return response.json({
+    user: {
+      id: colaborador.id,
+      nome: colaborador.nome,
+      cpf: colaborador.cpf,
+      email: colaborador.email,
+      foto: colaborador.foto,
+      tipo_usuario: colaborador.tipo_usuario,
+      status: colaborador.status,
+      celular: colaborador.celular,
+    },
+    cargo: {
+      id: colaborador.cargo_id,
+      nome_cargo: colaborador.nome_cargo,
+    },
+    empresa: {
+      id: colaborador.empresa_id,
+      nome_empresa: colaborador.nome_razao_social,
+    },
+    departamento: {
+      id: colaborador.departamento_id,
+      nome_departamento: colaborador.nome_departamento,
+    },
+  });
 });
 
 colaboradorRouter.post(
@@ -435,7 +463,6 @@ colaboradorRouter.post(
   }
 );
 
-
 colaboradorRouter.put(
   "/",
   celebrate(
@@ -450,12 +477,7 @@ colaboradorRouter.put(
     { abortEarly: false }
   ),
   async (request: Request, response: Response, next: NextFunction) => {
-    const {
-      id,
-      nome,
-      email,
-      celular,
-    } = request.body;
+    const { id, nome, email, celular } = request.body;
 
     // Consultando se ID's são validos
     const checkColaborador = await knex("colaborador").where("id", id).first();
@@ -469,15 +491,17 @@ colaboradorRouter.put(
     const newDadosColaborador = {
       nome,
       email,
-      celular
-    }
+      celular,
+    };
 
-    const updatedUsuario = await knex("colaborador").update(newDadosColaborador).where("id", id);
+    const updatedUsuario = await knex("colaborador")
+      .update(newDadosColaborador)
+      .where("id", id);
 
-    if(updatedUsuario){
+    if (updatedUsuario) {
       return response.status(200).json({
-        message: "Colaborador atualizado com sucesso!"
-      })
+        message: "Colaborador atualizado com sucesso!",
+      });
     }
   }
 );
