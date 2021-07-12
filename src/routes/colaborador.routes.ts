@@ -5,7 +5,7 @@ import { cpf as cpfValidator } from "cpf-cnpj-validator";
 
 import isAuthenticated from "../middlewares/isAuthenticated";
 import knex from "../database";
-import { hash } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 
 const colaboradorRouter = Router();
 
@@ -650,6 +650,132 @@ colaboradorRouter.put(
     if (updatedUsuario) {
       return response.status(200).json({
         message: "Colaborador atualizado com sucesso!",
+      });
+    }
+  }
+);
+
+// Atualiza senha de usuario especifico
+colaboradorRouter.put(
+  "/update-password/:id",
+  celebrate(
+    {
+      body: Joi.object().keys({
+        senha: Joi.string().required(),
+        confirmar_senha: Joi.string().required(),
+      }),
+    },
+    { abortEarly: false }
+  ),
+  async (request: Request, response: Response) => {
+    const { senha, confirmar_senha } = request.body;
+    const { id } = request.params;
+
+    if (senha !== confirmar_senha) {
+      return response.status(400).json({
+        error: "As senhas enviadas não condizem.",
+      });
+    }
+
+    // // verificando se dados chaves existem
+    const checkColaborador = await knex("colaborador").where("id", id).first();
+
+    // caso algum deles exista
+    if (!checkColaborador) {
+      return response.status(400).json({
+        error: "Usuário não encontrado.",
+      });
+    }
+
+    // validando senha com a tabela usuario
+    const comparedPassword = await compare(
+      String(senha),
+      String(checkColaborador.senha)
+    );
+
+    if (comparedPassword) {
+      return response.status(400).json({
+        error: "Sua nova senha precisa ser diferente da anterior.",
+      });
+    }
+
+    const hashedPassword = await hash(senha, 8);
+
+    const newDadosUsuario = {
+      senha: hashedPassword,
+    };
+
+    console.log(newDadosUsuario);
+
+    const updatedUsuario = await knex("colaborador")
+      .update(newDadosUsuario)
+      .where("id", id);
+
+    if (updatedUsuario) {
+      return response.status(200).json({
+        message: "Senha atualizada com sucesso!",
+      });
+    }
+  }
+);
+
+// Atualiza senha
+colaboradorRouter.put(
+  "/update-password",
+  celebrate(
+    {
+      body: Joi.object().keys({
+        id: Joi.number().required(),
+        senha: Joi.string().required(),
+        confirmar_senha: Joi.string().required(),
+      }),
+    },
+    { abortEarly: false }
+  ),
+  async (request: Request, response: Response) => {
+    const { id, senha, confirmar_senha } = request.body;
+
+    if (senha !== confirmar_senha) {
+      return response.status(400).json({
+        error: "As senhas enviadas não condizem.",
+      });
+    }
+
+    // verificando se dados chaves existem
+    const checkColaborador = await knex("colaborador").where("id", id).first();
+
+    // caso algum deles exista
+    if (!checkColaborador) {
+      return response.status(400).json({
+        error: "Usuário não encontrado.",
+      });
+    }
+
+    // validando senha com a tabela usuario
+    const comparedPassword = await compare(
+      String(senha),
+      String(checkColaborador.senha)
+    );
+
+    if (comparedPassword) {
+      return response.status(400).json({
+        error: "Sua nova senha precisa ser diferente da anterior.",
+      });
+    }
+
+    const hashedPassword = await hash(senha, 8);
+
+    const newDadosUsuario = {
+      senha: hashedPassword,
+    };
+
+    const updatedUsuario = await knex("colaborador")
+      .update(newDadosUsuario)
+      .where("id", id);
+
+    if (updatedUsuario) {
+      return response.status(200).json({
+        message: "Senha atualizada com sucesso!",
       });
     }
   }
