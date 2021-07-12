@@ -75,6 +75,7 @@ colaboradorRouter.get("/", async (request: Request, response: Response) => {
   return response.json(colaborador);
 });
 
+// Listar todos os mentores
 colaboradorRouter.get(
   "/mentores",
   async (request: Request, response: Response) => {
@@ -117,6 +118,7 @@ colaboradorRouter.get(
   }
 );
 
+// Listar mentor especifico
 colaboradorRouter.get(
   "/mentor",
   async (request: Request, response: Response) => {
@@ -190,6 +192,81 @@ colaboradorRouter.get(
   }
 );
 
+// Listar colaborador comum especifico
+colaboradorRouter.get(
+  "/comum",
+  async (request: Request, response: Response) => {
+    const { empresa_id, comum_id } = request.query;
+
+    if (!empresa_id || !comum_id) {
+      return response.status(400).json({
+        message: "Argumentos inválidos para a requisição.",
+      });
+    }
+
+    const checkEmpresa = await knex("empresa")
+      .where("id", Number(empresa_id))
+      .first();
+
+    const checkMentor = await knex("colaborador")
+      .where("id", Number(comum_id))
+      .first();
+
+    if (!checkEmpresa || !checkMentor) {
+      return response.status(400).json({
+        message: "Empresa ou usuário inválidos.",
+      });
+    }
+
+    const colaborador = await knex("colaborador")
+      .select(
+        "colaborador.*",
+        "empresa.nome_razao_social",
+        "departamento.nome_departamento",
+        "cargo.nome_cargo"
+      )
+      .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+      .leftJoin(
+        "departamento",
+        "colaborador.departamento_id",
+        "=",
+        "departamento.id"
+      )
+      .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+      .where({
+        tipo_usuario: "Comum",
+        empresa_id: Number(empresa_id),
+        "colaborador.id": Number(comum_id),
+      })
+      .first();
+
+    return response.json({
+      user: {
+        id: colaborador.id,
+        nome: colaborador.nome,
+        cpf: colaborador.cpf,
+        email: colaborador.email,
+        foto: colaborador.foto,
+        tipo_usuario: colaborador.tipo_usuario,
+        status: colaborador.status,
+      },
+      cargo: {
+        id: colaborador.cargo_id,
+        nome_cargo: colaborador.nome_cargo,
+      },
+      empresa: {
+        id: colaborador.empresa_id,
+        nome_empresa: colaborador.nome_razao_social,
+      },
+      departamento: {
+        id: colaborador.departamento_id,
+        nome_departamento: colaborador.nome_departamento,
+      },
+    });
+  }
+);
+
+// Listar todos os mentorados
 colaboradorRouter.get(
   "/mentorados",
   async (request: Request, response: Response) => {
@@ -235,6 +312,7 @@ colaboradorRouter.get(
   }
 );
 
+// Listar mentorado especifico
 colaboradorRouter.get(
   "/mentorado",
   async (request: Request, response: Response) => {
@@ -308,6 +386,7 @@ colaboradorRouter.get(
   }
 );
 
+// Listar qualquer colaborador especifico
 colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
   const { id } = request.params;
 
@@ -361,6 +440,7 @@ colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
   });
 });
 
+// Criar colaborador
 colaboradorRouter.post(
   "/",
   celebrate(
@@ -463,6 +543,7 @@ colaboradorRouter.post(
   }
 );
 
+// Alterar colaborador quando colaborador logado
 colaboradorRouter.put(
   "/",
   celebrate(
@@ -492,6 +573,74 @@ colaboradorRouter.put(
       nome,
       email,
       celular,
+    };
+
+    const updatedUsuario = await knex("colaborador")
+      .update(newDadosColaborador)
+      .where("id", id);
+
+    if (updatedUsuario) {
+      return response.status(200).json({
+        message: "Colaborador atualizado com sucesso!",
+      });
+    }
+  }
+);
+
+// Alterar colaborador quando ADMIN logado
+colaboradorRouter.put(
+  "/admin",
+  celebrate(
+    {
+      body: Joi.object().keys({
+        id: Joi.number().required(),
+        cpf: Joi.string().required().length(11),
+        nome: Joi.string().required(),
+        email: Joi.string().email().required(),
+        celular: Joi.string().required(),
+        tipo_usuario: Joi.string()
+          .valid("Comum", "Mentor", "Mentorado")
+          .required(),
+        departamento_id: Joi.number().required(),
+        cargo_id: Joi.number().required(),
+        status: Joi.number().required(),
+      }),
+    },
+    { abortEarly: false }
+  ),
+  async (request: Request, response: Response, next: NextFunction) => {
+    const {
+      id,
+      nome,
+      cpf,
+      email,
+      celular,
+      departamento_id,
+      cargo_id,
+      tipo_usuario,
+      status,
+    } = request.body;
+
+    // Consultando se ID's são validos
+    const checkColaborador = await knex("colaborador").where("id", id).first();
+
+    if (!checkColaborador) {
+      return response
+        .status(400)
+        .json({ error: "Colaborador não encontrado." });
+    } else {
+      console.log("colaborador existe");
+    }
+
+    const newDadosColaborador = {
+      nome,
+      cpf,
+      email,
+      celular,
+      departamento_id,
+      cargo_id,
+      tipo_usuario,
+      status,
     };
 
     const updatedUsuario = await knex("colaborador")

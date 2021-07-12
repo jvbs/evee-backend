@@ -24,7 +24,8 @@ authRouter.get("/check", async (request, response) => {
     if (Number(userType) === 1) {
       // usuario
       var dbUser = await knex("usuario")
-        .select("usuario.*",
+        .select(
+          "usuario.*",
           { empresaId: "empresa.id" },
           "empresa.nome_razao_social",
           "empresa.cnpj"
@@ -110,10 +111,17 @@ authRouter.post("/", async (request, response) => {
       { empresaId: "empresa.id" },
       "empresa.nome_razao_social",
       "empresa.cnpj",
-      "cargo.nome_cargo"
+      "cargo.nome_cargo",
+      "departamento.nome_departamento"
     )
     .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
     .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+    .leftJoin(
+      "departamento",
+      "colaborador.departamento_id",
+      "=",
+      "departamento.id"
+    )
     .where("email", email)
     .first();
 
@@ -180,7 +188,8 @@ authRouter.post("/", async (request, response) => {
       nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
       userType: userType === 1 ? "Admin" : checkColaborador.tipo_usuario,
       cargo: userType === 1 ? "Administrador" : checkColaborador.nome_cargo,
-      departamento: userType === 1 ? "Administrador" : "adicionar",
+      departamento:
+        userType === 1 ? "Administrador" : checkColaborador.nome_departamento,
       cargo_id: userType === 1 ? "" : checkColaborador.cargo_id,
       status: userType === 1 ? 1 : checkColaborador.status,
       departamento_id: userType === 1 ? "" : checkColaborador.departamento_id,
