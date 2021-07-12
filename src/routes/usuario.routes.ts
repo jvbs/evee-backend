@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { celebrate, Joi } from "celebrate";
-import { hash } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
 import knex from "../database";
 import isAuthenticated from "../middlewares/isAuthenticated";
@@ -223,6 +223,67 @@ usuarioRouter.put(
     if (updatedUsuario) {
       return response.status(200).json({
         message: "Usuário atualizado com sucesso!",
+      });
+    }
+  }
+);
+
+usuarioRouter.put(
+  "/update-password",
+  celebrate(
+    {
+      body: Joi.object().keys({
+        id: Joi.number().required(),
+        senha: Joi.string().required(),
+        confirmar_senha: Joi.string().required(),
+      }),
+    },
+    { abortEarly: false }
+  ),
+  async (request: Request, response: Response) => {
+    const { id, senha, confirmar_senha } = request.body;
+
+    if (senha !== confirmar_senha) {
+      return response.status(400).json({
+        error: "As senhas enviadas não condizem.",
+      });
+    }
+
+    // verificando se dados chaves existem
+    const checkUsuario = await knex("usuario").where("id", id).first();
+
+    // caso algum deles exista
+    if (!checkUsuario) {
+      return response.status(400).json({
+        error: "Usuário não encontrado.",
+      });
+    }
+
+    // validando senha com a tabela usuario
+    const comparedPassword = await compare(
+      String(senha),
+      String(checkUsuario.senha)
+    );
+
+    if (comparedPassword) {
+      return response.status(400).json({
+        error: "Sua nova senha precisa ser diferente da anterior.",
+      });
+    }
+
+    const hashedPassword = await hash(senha, 8);
+
+    const newDadosUsuario = {
+      senha: hashedPassword,
+    };
+
+    const updatedUsuario = await knex("usuario")
+      .update(newDadosUsuario)
+      .where("id", id);
+
+    if (updatedUsuario) {
+      return response.status(200).json({
+        message: "Senha atualizada com sucesso!",
       });
     }
   }
