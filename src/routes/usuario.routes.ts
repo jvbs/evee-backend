@@ -2,6 +2,9 @@ import { Router, Request, Response } from "express";
 import { celebrate, Joi } from "celebrate";
 import { compare, hash } from "bcryptjs";
 import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
+import fileUpload from "express-fileupload";
+import { v4 as uuid } from "uuid";
+
 import knex from "../database";
 import isAuthenticated from "../middlewares/isAuthenticated";
 
@@ -16,8 +19,9 @@ function titleizeName(text: string) {
 
 const usuarioRouter = Router();
 
-// habilitando o middleware
+// habilitando middlewares
 usuarioRouter.use(isAuthenticated);
+usuarioRouter.use(fileUpload());
 
 usuarioRouter.get("/", async (request: Request, response: Response) => {
   const usuarios = await knex("usuario")
@@ -286,6 +290,36 @@ usuarioRouter.put(
         message: "Senha atualizada com sucesso!",
       });
     }
+  }
+);
+
+usuarioRouter.post(
+  "/upload-profile-picture",
+  async (request: Request, response: Response) => {
+    const { id } = request.body;
+
+    if (!id || request.files === null) {
+      return response.status(400).json({
+        error: "Argumentos insuficientes para completar a requisição.",
+      });
+    }
+
+    const img: any = request.files!.img;
+    const extension: string = img.mimetype.split("/")[1];
+
+    const imgName: string = `evee-${uuid()}.${extension}`;
+    const path = `${process.cwd()}/uploads/profile-pictures/${imgName}`;
+
+    img.mv(path, (error: any) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).send(error);
+      }
+    });
+
+    return response
+      .status(200)
+      .json({ message: "Imagem adicionada com sucesso! " });
   }
 );
 

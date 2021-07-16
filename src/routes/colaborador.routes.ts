@@ -1,6 +1,5 @@
-import { celebrate, Joi } from "celebrate";
 import { Router, Request, Response, NextFunction } from "express";
-// import password from "secure-random-password";
+import { celebrate, Joi } from "celebrate";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 
 import isAuthenticated from "../middlewares/isAuthenticated";
@@ -677,7 +676,7 @@ colaboradorRouter.put(
       });
     }
 
-    // // verificando se dados chaves existem
+    // verificando se dados chaves existem
     const checkColaborador = await knex("colaborador").where("id", id).first();
 
     // caso algum deles exista
