@@ -2,8 +2,8 @@ import { Router, Request, Response } from "express";
 import { celebrate, Joi } from "celebrate";
 import { compare, hash } from "bcryptjs";
 import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
-import fileUpload from "express-fileupload";
 import { v4 as uuid } from "uuid";
+import fileUpload from "express-fileupload";
 
 import knex from "../database";
 import isAuthenticated from "../middlewares/isAuthenticated";
@@ -30,6 +30,7 @@ usuarioRouter.get("/", async (request: Request, response: Response) => {
       "usuario.nome",
       "usuario.cargo",
       "usuario.email",
+      "usuario.foto",
       "usuario.celular",
       { empresaId: "empresa.id" },
       "empresa.nome_razao_social",
@@ -46,6 +47,7 @@ usuarioRouter.get("/", async (request: Request, response: Response) => {
         cargo: usuario.cargo,
         email: usuario.email,
         celular: usuario.celular,
+        foto: usuario.foto,
       },
       empresa: {
         id: usuario.empresaId,
@@ -69,6 +71,7 @@ usuarioRouter.get("/:id", async (request: Request, response: Response) => {
       "usuario.nome",
       "usuario.cargo",
       "usuario.email",
+      "usuario.foto",
       "usuario.celular",
       { empresaId: "empresa.id" },
       "empresa.nome_razao_social",
@@ -89,6 +92,7 @@ usuarioRouter.get("/:id", async (request: Request, response: Response) => {
       cargo: usuario.cargo,
       email: usuario.email,
       celular: usuario.celular,
+      foto: usuario.foto,
     },
     empresa: {
       id: usuario.empresaId,
@@ -317,9 +321,19 @@ usuarioRouter.post(
       }
     });
 
-    return response
-      .status(200)
-      .json({ message: "Imagem adicionada com sucesso! " });
+    const updateImg = await knex("usuario")
+      .update({
+        foto: `http://localhost:8080/uploads/profile-pictures/${imgName}`,
+      })
+      .where("id", id);
+
+    console.log(updateImg);
+
+    if (updateImg) {
+      return response
+        .status(200)
+        .json({ message: "Imagem adicionada com sucesso! " });
+    }
   }
 );
 

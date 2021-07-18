@@ -121,4 +121,7 @@ dist
 # Ignore Database Sqlite
 src/database/database.sqlite
 
+uploads/profile-pictures/*
+!uploads/profile-pictures/Readme.md
+
 knexfile.ts

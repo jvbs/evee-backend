@@ -1,6 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { celebrate, Joi } from "celebrate";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
+import { v4 as uuid } from "uuid";
+import fileUpload from "express-fileupload";
 
 import isAuthenticated from "../middlewares/isAuthenticated";
 import knex from "../database";
@@ -19,6 +21,7 @@ function titleizeName(text: string) {
 
 // habilitando middleware
 colaboradorRouter.use(isAuthenticated);
+colaboradorRouter.use(fileUpload());
 
 type ColaboradorTypes = {
   cpf: string;
@@ -35,6 +38,7 @@ type ColaboradorTypes = {
   status: boolean;
 };
 
+// Listando todos os colaboradores
 colaboradorRouter.get("/", async (request: Request, response: Response) => {
   const { empresa_id } = request.query;
 
@@ -508,7 +512,7 @@ colaboradorRouter.post(
       empresa_id,
       data_nascimento: "1990-01-01",
       cargo_id,
-      foto: "usuarioSemFoto.png",
+      foto: "",
       status: Number(status) === 1 ? true : false,
       senha: hashedPassword,
     };
@@ -627,8 +631,6 @@ colaboradorRouter.put(
       return response
         .status(400)
         .json({ error: "Colaborador não encontrado." });
-    } else {
-      console.log("colaborador existe");
     }
 
     const newDadosColaborador = {
@@ -704,8 +706,6 @@ colaboradorRouter.put(
       senha: hashedPassword,
     };
 
-    console.log(newDadosUsuario);
-
     const updatedUsuario = await knex("colaborador")
       .update(newDadosUsuario)
       .where("id", id);
@@ -776,6 +776,47 @@ colaboradorRouter.put(
       return response.status(200).json({
         message: "Senha atualizada com sucesso!",
       });
+    }
+  }
+);
+
+// Upload foto de perfil
+colaboradorRouter.post(
+  "/upload-profile-picture",
+  async (request: Request, response: Response) => {
+    const { id } = request.body;
+
+    if (!id || request.files === null) {
+      return response.status(400).json({
+        error: "Argumentos insuficientes para completar a requisição.",
+      });
+    }
+
+    const img: any = request.files!.img;
+    const extension: string = img.mimetype.split("/")[1];
+
+    const imgName: string = `evee-${uuid()}.${extension}`;
+    const path = `${process.cwd()}/uploads/profile-pictures/${imgName}`;
+
+    img.mv(path, (error: any) => {
+      if (error) {
+        console.error(error);
+        return response.status(500).send(error);
+      }
+    });
+
+    const updateImg = await knex("colaborador")
+      .update({
+        foto: `http://localhost:8080/uploads/profile-pictures/${imgName}`,
+      })
+      .where("id", id);
+
+    // console.log(updateImg);
+
+    if (updateImg) {
+      return response
+        .status(200)
+        .json({ message: "Imagem adicionada com sucesso! " });
     }
   }
 );
