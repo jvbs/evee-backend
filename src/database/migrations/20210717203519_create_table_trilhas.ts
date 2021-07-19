@@ -17,6 +17,7 @@ export async function up(knex: Knex): Promise<void> {
       .references("id")
       .inTable("tipo_trilha");
     table.integer("prazo_id").unsigned().references("id").inTable("prazo");
+    table.integer("empresa_id").unsigned().references("id").inTable("empresa");
     table.enum("status", [1, 0]);
   });
 }

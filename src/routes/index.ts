@@ -8,6 +8,7 @@ import usuarioRouter from "./usuario.routes";
 import authRouter from "./auth.routes";
 import tipoTrilhaRouter from "./tipo_trilha.routes";
 import prazoRouter from "./prazo.routes";
+import trilhaRouter from "./trilha.routes";
 
 const routes = Router();
 
@@ -18,6 +19,7 @@ routes.use("/usuario", usuarioRouter);
 routes.use("/colaborador", colaboradorRouter);
 routes.use("/departamento", departamentoRouter);
 routes.use("/empresa", empresaRouter);
+routes.use("/trilha", trilhaRouter);
 // Authentication Router
 routes.use("/auth", authRouter);
 
