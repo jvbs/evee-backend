@@ -20,10 +20,10 @@ function titleizeName(text: string) {
 const usuarioRouter = Router();
 
 // habilitando middlewares
-usuarioRouter.use(isAuthenticated);
+// usuarioRouter.use(isAuthenticated);
 usuarioRouter.use(fileUpload());
 
-usuarioRouter.get("/", async (request: Request, response: Response) => {
+usuarioRouter.get("/", isAuthenticated, async (request: Request, response: Response) => {
   const usuarios = await knex("usuario")
     .select(
       "usuario.id",
@@ -62,7 +62,7 @@ usuarioRouter.get("/", async (request: Request, response: Response) => {
   return response.json(selectedUsers);
 });
 
-usuarioRouter.get("/:id", async (request: Request, response: Response) => {
+usuarioRouter.get("/:id", isAuthenticated, async (request: Request, response: Response) => {
   const { id } = request.params;
 
   const usuario = await knex("usuario")
@@ -124,10 +124,11 @@ usuarioRouter.post(
       nome,
       email,
       celular,
-      empresa: nomeEmpresa,
+      empresa: nomeEmpresa, 
       cnpj,
       senha,
     } = request.body;
+
 
     // verificando se dados chaves existem
     const checkEmail = await knex("usuario").where("email", email).first();
@@ -175,6 +176,7 @@ usuarioRouter.post(
 
     await knex("solicitacao_cadastro").insert(solicitacaoCadastro);
 
+
     return response.status(201).json({
       usuario: {
         id: newUsuario[0],
@@ -194,6 +196,7 @@ usuarioRouter.post(
 
 usuarioRouter.put(
   "/",
+  isAuthenticated, 
   celebrate(
     {
       body: Joi.object().keys({
@@ -238,6 +241,7 @@ usuarioRouter.put(
 
 usuarioRouter.put(
   "/update-password",
+  isAuthenticated, 
   celebrate(
     {
       body: Joi.object().keys({
@@ -299,6 +303,7 @@ usuarioRouter.put(
 
 usuarioRouter.post(
   "/upload-profile-picture",
+  isAuthenticated,
   async (request: Request, response: Response) => {
     const { id } = request.body;
 
