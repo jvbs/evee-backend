@@ -77,8 +77,6 @@ trilhaRouter.post(
       status: 1,
     };
 
-    console.log('dispardo')
-
     try {
       const transaction = await knex.transaction();
 
