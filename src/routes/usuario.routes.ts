@@ -4,6 +4,8 @@ import { compare, hash } from "bcryptjs";
 import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
 import { v4 as uuid } from "uuid";
 import fileUpload from "express-fileupload";
+// @ts-ignore
+import imgbbUploader from "imgbb-uploader";
 
 import knex from "../database";
 import isAuthenticated from "../middlewares/isAuthenticated";
@@ -23,24 +25,76 @@ const usuarioRouter = Router();
 // usuarioRouter.use(isAuthenticated);
 usuarioRouter.use(fileUpload());
 
-usuarioRouter.get("/", isAuthenticated, async (request: Request, response: Response) => {
-  const usuarios = await knex("usuario")
-    .select(
-      "usuario.id",
-      "usuario.nome",
-      "usuario.cargo",
-      "usuario.email",
-      "usuario.foto",
-      "usuario.celular",
-      { empresaId: "empresa.id" },
-      "empresa.nome_razao_social",
-      "empresa.cnpj"
-    )
-    .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id");
+usuarioRouter.get(
+  "/",
+  isAuthenticated,
+  async (request: Request, response: Response) => {
+    const usuarios = await knex("usuario")
+      .select(
+        "usuario.id",
+        "usuario.nome",
+        "usuario.cargo",
+        "usuario.email",
+        "usuario.foto",
+        "usuario.celular",
+        { empresaId: "empresa.id" },
+        "empresa.nome_razao_social",
+        "empresa.cnpj"
+      )
+      .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id");
 
-  const selectedUsers: [{}] = [{}];
-  usuarios.map((usuario) => {
-    let structure = {
+    const selectedUsers: [{}] = [{}];
+    usuarios.map((usuario) => {
+      let structure = {
+        usuario: {
+          id: usuario.id,
+          nome: usuario.nome,
+          cargo: usuario.cargo,
+          email: usuario.email,
+          celular: usuario.celular,
+          foto: usuario.foto,
+        },
+        empresa: {
+          id: usuario.empresaId,
+          nome_razao_social: usuario.nome_razao_social,
+          cnpj: usuario.cnpj,
+        },
+      };
+
+      selectedUsers.push(structure);
+    });
+
+    return response.json(selectedUsers);
+  }
+);
+
+usuarioRouter.get(
+  "/:id",
+  isAuthenticated,
+  async (request: Request, response: Response) => {
+    const { id } = request.params;
+
+    const usuario = await knex("usuario")
+      .select(
+        "usuario.id",
+        "usuario.nome",
+        "usuario.cargo",
+        "usuario.email",
+        "usuario.foto",
+        "usuario.celular",
+        { empresaId: "empresa.id" },
+        "empresa.nome_razao_social",
+        "empresa.cnpj"
+      )
+      .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id")
+      .where("usuario.id", id)
+      .first();
+
+    if (!usuario) {
+      return response.status(400).json({ message: "Usuário não encontrado." });
+    }
+
+    const selectedUser = {
       usuario: {
         id: usuario.id,
         nome: usuario.nome,
@@ -56,53 +110,9 @@ usuarioRouter.get("/", isAuthenticated, async (request: Request, response: Respo
       },
     };
 
-    selectedUsers.push(structure);
-  });
-
-  return response.json(selectedUsers);
-});
-
-usuarioRouter.get("/:id", isAuthenticated, async (request: Request, response: Response) => {
-  const { id } = request.params;
-
-  const usuario = await knex("usuario")
-    .select(
-      "usuario.id",
-      "usuario.nome",
-      "usuario.cargo",
-      "usuario.email",
-      "usuario.foto",
-      "usuario.celular",
-      { empresaId: "empresa.id" },
-      "empresa.nome_razao_social",
-      "empresa.cnpj"
-    )
-    .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id")
-    .where("usuario.id", id)
-    .first();
-
-  if (!usuario) {
-    return response.status(400).json({ message: "Usuário não encontrado." });
+    return response.json(selectedUser);
   }
-
-  const selectedUser = {
-    usuario: {
-      id: usuario.id,
-      nome: usuario.nome,
-      cargo: usuario.cargo,
-      email: usuario.email,
-      celular: usuario.celular,
-      foto: usuario.foto,
-    },
-    empresa: {
-      id: usuario.empresaId,
-      nome_razao_social: usuario.nome_razao_social,
-      cnpj: usuario.cnpj,
-    },
-  };
-
-  return response.json(selectedUser);
-});
+);
 
 usuarioRouter.post(
   "/",
@@ -124,11 +134,10 @@ usuarioRouter.post(
       nome,
       email,
       celular,
-      empresa: nomeEmpresa, 
+      empresa: nomeEmpresa,
       cnpj,
       senha,
     } = request.body;
-
 
     // verificando se dados chaves existem
     const checkEmail = await knex("usuario").where("email", email).first();
@@ -176,7 +185,6 @@ usuarioRouter.post(
 
     await knex("solicitacao_cadastro").insert(solicitacaoCadastro);
 
-
     return response.status(201).json({
       usuario: {
         id: newUsuario[0],
@@ -196,7 +204,7 @@ usuarioRouter.post(
 
 usuarioRouter.put(
   "/",
-  isAuthenticated, 
+  isAuthenticated,
   celebrate(
     {
       body: Joi.object().keys({
@@ -241,7 +249,7 @@ usuarioRouter.put(
 
 usuarioRouter.put(
   "/update-password",
-  isAuthenticated, 
+  isAuthenticated,
   celebrate(
     {
       body: Joi.object().keys({
@@ -312,7 +320,6 @@ usuarioRouter.post(
         error: "Argumentos insuficientes para completar a requisição.",
       });
     }
-
     const img: any = request.files!.img;
     const extension: string = img.mimetype.split("/")[1];
 
@@ -326,19 +333,21 @@ usuarioRouter.post(
       }
     });
 
-    const updateImg = await knex("usuario")
-      .update({
-        foto: `http://localhost:8080/uploads/profile-pictures/${imgName}`,
+    imgbbUploader(process.env.IMGBB_API_KEY, path)
+      .then(async (response: any) => {
+        const updateImg = await knex("usuario")
+          .update({
+            foto: response.url,
+          })
+          .where("id", id);
       })
-      .where("id", id);
+      .catch((error: any) => console.error("error", error));
 
-    console.log(updateImg);
+    return response
+      .status(200)
+      .json({ message: "Imagem adicionada com sucesso! " });
 
-    if (updateImg) {
-      return response
-        .status(200)
-        .json({ message: "Imagem adicionada com sucesso! " });
-    }
+    // console.log(updateImg);
   }
 );
 
