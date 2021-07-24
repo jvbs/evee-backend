@@ -2,8 +2,8 @@ import { Router, Request, Response } from "express";
 import { celebrate, Joi } from "celebrate";
 import { compare, hash } from "bcryptjs";
 import { cnpj as cnpjValidator } from "cpf-cnpj-validator";
-import fileUpload from "express-fileupload";
 import { v4 as uuid } from "uuid";
+import fileUpload from "express-fileupload";
 
 import knex from "../database";
 import isAuthenticated from "../middlewares/isAuthenticated";
@@ -20,16 +20,17 @@ function titleizeName(text: string) {
 const usuarioRouter = Router();
 
 // habilitando middlewares
-usuarioRouter.use(isAuthenticated);
+// usuarioRouter.use(isAuthenticated);
 usuarioRouter.use(fileUpload());
 
-usuarioRouter.get("/", async (request: Request, response: Response) => {
+usuarioRouter.get("/", isAuthenticated, async (request: Request, response: Response) => {
   const usuarios = await knex("usuario")
     .select(
       "usuario.id",
       "usuario.nome",
       "usuario.cargo",
       "usuario.email",
+      "usuario.foto",
       "usuario.celular",
       { empresaId: "empresa.id" },
       "empresa.nome_razao_social",
@@ -46,6 +47,7 @@ usuarioRouter.get("/", async (request: Request, response: Response) => {
         cargo: usuario.cargo,
         email: usuario.email,
         celular: usuario.celular,
+        foto: usuario.foto,
       },
       empresa: {
         id: usuario.empresaId,
@@ -60,7 +62,7 @@ usuarioRouter.get("/", async (request: Request, response: Response) => {
   return response.json(selectedUsers);
 });
 
-usuarioRouter.get("/:id", async (request: Request, response: Response) => {
+usuarioRouter.get("/:id", isAuthenticated, async (request: Request, response: Response) => {
   const { id } = request.params;
 
   const usuario = await knex("usuario")
@@ -69,6 +71,7 @@ usuarioRouter.get("/:id", async (request: Request, response: Response) => {
       "usuario.nome",
       "usuario.cargo",
       "usuario.email",
+      "usuario.foto",
       "usuario.celular",
       { empresaId: "empresa.id" },
       "empresa.nome_razao_social",
@@ -89,6 +92,7 @@ usuarioRouter.get("/:id", async (request: Request, response: Response) => {
       cargo: usuario.cargo,
       email: usuario.email,
       celular: usuario.celular,
+      foto: usuario.foto,
     },
     empresa: {
       id: usuario.empresaId,
@@ -120,10 +124,11 @@ usuarioRouter.post(
       nome,
       email,
       celular,
-      empresa: nomeEmpresa,
+      empresa: nomeEmpresa, 
       cnpj,
       senha,
     } = request.body;
+
 
     // verificando se dados chaves existem
     const checkEmail = await knex("usuario").where("email", email).first();
@@ -171,6 +176,7 @@ usuarioRouter.post(
 
     await knex("solicitacao_cadastro").insert(solicitacaoCadastro);
 
+
     return response.status(201).json({
       usuario: {
         id: newUsuario[0],
@@ -190,6 +196,7 @@ usuarioRouter.post(
 
 usuarioRouter.put(
   "/",
+  isAuthenticated, 
   celebrate(
     {
       body: Joi.object().keys({
@@ -234,6 +241,7 @@ usuarioRouter.put(
 
 usuarioRouter.put(
   "/update-password",
+  isAuthenticated, 
   celebrate(
     {
       body: Joi.object().keys({
@@ -295,6 +303,7 @@ usuarioRouter.put(
 
 usuarioRouter.post(
   "/upload-profile-picture",
+  isAuthenticated,
   async (request: Request, response: Response) => {
     const { id } = request.body;
 
@@ -317,9 +326,19 @@ usuarioRouter.post(
       }
     });
 
-    return response
-      .status(200)
-      .json({ message: "Imagem adicionada com sucesso! " });
+    const updateImg = await knex("usuario")
+      .update({
+        foto: `http://localhost:8080/uploads/profile-pictures/${imgName}`,
+      })
+      .where("id", id);
+
+    console.log(updateImg);
+
+    if (updateImg) {
+      return response
+        .status(200)
+        .json({ message: "Imagem adicionada com sucesso! " });
+    }
   }
 );
 

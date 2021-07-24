@@ -65,6 +65,7 @@ authRouter.get("/check", async (request, response) => {
         userType: Number(userType) === 1 ? "Admin" : dbUser.tipo_usuario,
         email: dbUser.email,
         celular: dbUser.celular,
+        foto: dbUser.foto,
         cargo: Number(userType) === 1 ? dbUser.cargo : dbUser.nome_cargo,
         status: Number(userType) === 1 ? 1 : Number(dbUser.status),
         cargo_id: dbUser.cargo_id,
@@ -79,7 +80,7 @@ authRouter.get("/check", async (request, response) => {
             : dbUser.nome_razao_social,
       },
     };
-    console.log(userReturn);
+    // console.log(userReturn);
     return response.json(userReturn);
   } catch (error) {
     return response.status(401).json({ message: "JWT Token Inválido." });
@@ -96,6 +97,7 @@ authRouter.post("/", async (request, response) => {
       "usuario.cargo",
       "usuario.email",
       "usuario.celular",
+      "usuario.foto",
       "usuario.senha",
       { empresaId: "empresa.id" },
       "empresa.nome_razao_social",
@@ -188,6 +190,7 @@ authRouter.post("/", async (request, response) => {
       nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
       userType: userType === 1 ? "Admin" : checkColaborador.tipo_usuario,
       cargo: userType === 1 ? "Administrador" : checkColaborador.nome_cargo,
+      foto: userType === 1 ? checkUsuario.foto : null,
       departamento:
         userType === 1 ? "Administrador" : checkColaborador.nome_departamento,
       cargo_id: userType === 1 ? "" : checkColaborador.cargo_id,
