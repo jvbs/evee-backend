@@ -3,6 +3,8 @@ import { celebrate, Joi } from "celebrate";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import { v4 as uuid } from "uuid";
 import fileUpload from "express-fileupload";
+// @ts-ignore
+import imgbbUploader from "imgbb-uploader";
 
 import isAuthenticated from "../middlewares/isAuthenticated";
 import knex from "../database";
@@ -805,19 +807,19 @@ colaboradorRouter.post(
       }
     });
 
-    const updateImg = await knex("colaborador")
-      .update({
-        foto: `http://localhost:8080/uploads/profile-pictures/${imgName}`,
+    imgbbUploader(process.env.IMGBB_API_KEY, path)
+      .then(async (response: any) => {
+        const updateImg = await knex("colaborador")
+          .update({
+            foto: response.url,
+          })
+          .where("id", id);
       })
-      .where("id", id);
+      .catch((error: any) => console.error("error", error));
 
-    // console.log(updateImg);
-
-    if (updateImg) {
-      return response
-        .status(200)
-        .json({ message: "Imagem adicionada com sucesso! " });
-    }
+    return response
+      .status(200)
+      .json({ message: "Imagem adicionada com sucesso! " });
   }
 );
 
