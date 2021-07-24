@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --inspect --ignore-watch node_modules src/server.ts",
     "knex:migrate": "yarn knex --knexfile knexfile.ts migrate:latest",
-    "prestart": "yarn knex --knexfile knexfile.ts migrate:latest",
+    "prestart": "yarn knex --knexfile knexfile.js migrate:latest",
     "start": "node dist/server.js",
     "postinstall": "tsc",
     "watch-node": "nodemon dist/server.js",
