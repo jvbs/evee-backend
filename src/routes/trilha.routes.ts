@@ -9,6 +9,75 @@ const trilhaRouter = Router();
 // habilitando middlewares
 trilhaRouter.use(isAuthenticated);
 
+// trilhas disponiveis para PDI
+trilhaRouter.get(
+  "/tipo-trilha-pdi",
+  async (request: Request, response: Response) => {
+    const { dpto, programa, empresa } = request.query;
+
+    if (!dpto || !programa || !empresa) {
+      return response.status(400).json({
+        error: "Argumentos inválidos para completar a requisição.",
+      });
+    }
+
+    const checkDpto = await knex("departamento")
+      .where({ id: Number(dpto) })
+      .first();
+    const checkEmpresa = await knex("empresa")
+      .where({ id: Number(empresa) })
+      .first();
+
+    if (!checkDpto || !checkEmpresa) {
+      return response.status(400).json({
+        error: "Departamento ou empresa inválidos.",
+      });
+    }
+
+    const selectTrails = await knex("trilha")
+      .select("trilha.*", "tipo_trilha.nome_trilha")
+      .leftJoin("tipo_trilha", "trilha.trilha_id", "=", "tipo_trilha.id")
+      .where({
+        departamento_id: Number(dpto),
+        empresa_id: Number(empresa),
+        programa,
+      });
+
+    return response.json(selectTrails);
+  }
+);
+
+// mentores disponiveis para trilha de PDI
+trilhaRouter.get(
+  "/mentores-trilha-pdi",
+  async (request: Request, response: Response) => {
+    const { empresa, dpto } = request.query;
+
+    const checkDpto = await knex("departamento")
+      .where({ id: Number(dpto) })
+      .first();
+    const checkEmpresa = await knex("empresa")
+      .where({ id: Number(empresa) })
+      .first();
+
+    if (!checkDpto || !checkEmpresa) {
+      return response.status(400).json({
+        error: "Departamento ou empresa inválidos.",
+      });
+    }
+
+    const selectMentors = await knex("colaborador")
+      .select("colaborador.id", "colaborador.nome", "colaborador.tipo_usuario")
+      .where({
+        empresa_id: Number(empresa),
+        departamento_id: Number(dpto),
+        tipo_usuario: "Mentor",
+      });
+
+    response.json(selectMentors);
+  }
+);
+
 // criar nova trilha
 trilhaRouter.post(
   "/create",
