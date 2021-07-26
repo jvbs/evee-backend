@@ -17,7 +17,7 @@ pdiRouter.post(
       body: Joi.object().keys({
         trilha_id: Joi.number().required(),
         nome_programa: Joi.string().valid("Aprendizagem", "Estágio").required(),
-        competencias_tags: Joi.string(),
+        competencias_tags: Joi.string().allow(null, ""),
         mentor_responsavel_id: Joi.number().required(),
         mentorado_id: Joi.number().required(),
         nome_trilha: Joi.string().required(),
@@ -66,7 +66,7 @@ pdiRouter.post(
       mentor_responsavel_nome: checkMentor.nome,
       competencias_tags,
       mentorado_id,
-      status: 1,
+      status: "Ativo",
       avaliacao: "Não iniciado",
     };
 
@@ -92,5 +92,19 @@ pdiRouter.post(
     }
   }
 );
+
+pdiRouter.get("/:id", async (request: Request, response: Response) => {
+  const { id } = request.params;
+
+  if (!id) {
+    return response.status(400).json({
+      error: "Argumentos inválidos para completar a requisição.",
+    });
+  }
+
+  const selectedPdi = await knex("pdi").where("id", id).first();
+
+  return response.json(selectedPdi);
+});
 
 export default pdiRouter;

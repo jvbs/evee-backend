@@ -19,8 +19,22 @@ export async function up(knex: Knex): Promise<void> {
       .inTable("colaborador");
     table.string("mentor_responsavel_nome", 100).notNullable();
     table.string("competencias_tags", 255).notNullable();
-    table.enum("status", [1, 0]);
-    table.string("avaliacao", 100).notNullable();
+    table.enum("status", [
+      "Ativo",
+      "Inativo",
+      "Concluído",
+      "Não concluído",
+      "Bloqueado",
+    ]);
+    table
+      .enum("avaliacao", [
+        "Não iniciado",
+        "Insatisfatório",
+        "Parcialmente insatisfatório",
+        "Satisfatório",
+        "Excelente",
+      ])
+      .notNullable();
   });
 }
 
