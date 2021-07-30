@@ -124,7 +124,7 @@ authRouter.post("/", async (request, response) => {
       "=",
       "departamento.id"
     )
-    .where("email", email)
+    .where({ email: email, status: 1 })
     .first();
 
   if (!checkUsuario && !checkColaborador) {

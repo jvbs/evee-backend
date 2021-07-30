@@ -503,6 +503,19 @@ colaboradorRouter.post(
         .json({ error: "Argumentos inválidos para a requisição." });
     }
 
+    if ((cargo_id === 35 || cargo_id === 36) && tipo_usuario !== "Mentorado") {
+      return response.status(400).json({
+        error:
+          "Ops! Aprendiz e Estágiarios podem apenas ser cadastrados como mentorados.",
+      });
+    }
+
+    if ((cargo_id !== 35 || cargo_id !== 36) && tipo_usuario === "Mentorado") {
+      return response.status(400).json({
+        error: `Ops! O cargo "${cargoId.nome_cargo}" não pode ser cadastrado como mentorado.`,
+      });
+    }
+
     const hashedPassword = await hash(senha, 8);
     const colaborador: ColaboradorTypes = {
       cpf,
