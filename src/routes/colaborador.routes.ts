@@ -445,6 +445,35 @@ colaboradorRouter.get("/:id", async (request: Request, response: Response) => {
   });
 });
 
+// Listar mentorados do mentor
+colaboradorRouter.get(
+  "/mentorados_mentor/:id",
+  async (request: Request, response: Response, next: NextFunction) => {
+    const { id } = request.params;
+
+    if (!id) {
+      return response
+        .status(400)
+        .json({ error: "Argumentos inválidos para completar a requisição." });
+    }
+
+    const selectMentoredsMentor = await knex("colaborador")
+      .select(
+        "colaborador.id",
+        "colaborador.nome",
+        "colaborador.foto",
+        "pdi.tipo_trilha",
+        "pdi.nome_trilha",
+        "cargo.nome_cargo"
+      )
+      .leftJoin("pdi", "colaborador.id", "=", "pdi.mentorado_id")
+      .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+      .where("pdi.mentor_responsavel_id", id);
+
+    return response.json(selectMentoredsMentor);
+  }
+);
+
 // Criar colaborador
 colaboradorRouter.post(
   "/",
@@ -510,16 +539,17 @@ colaboradorRouter.post(
       });
     }
 
-    if ((cargo_id !== 35 || cargo_id !== 36) && tipo_usuario === "Mentorado") {
+    if (cargo_id !== 35 && cargo_id !== 36 && tipo_usuario === "Mentorado") {
       return response.status(400).json({
         error: `Ops! O cargo "${cargoId.nome_cargo}" não pode ser cadastrado como mentorado.`,
       });
     }
 
     const hashedPassword = await hash(senha, 8);
+
     const colaborador: ColaboradorTypes = {
       cpf,
-      nome: titleizeName(nome),
+      nome, //: titleizeName(nome),
       email,
       celular: celular.replace(/\D/g, ""),
       tipo_usuario,
