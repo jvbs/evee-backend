@@ -689,10 +689,33 @@ colaboradorRouter.put(
     // Consultando se ID's são validos
     const checkColaborador = await knex("colaborador").where("id", id).first();
 
+    const cargoId = await knex("cargo").where("id", cargo_id).first();
+
     if (!checkColaborador) {
       return response
         .status(400)
         .json({ error: "Colaborador não encontrado." });
+    }
+
+    if (
+      (cargoId.nome_cargo === "Aprendiz" ||
+        cargoId.nome_cargo === "Estagiário") &&
+      tipo_usuario !== "Mentorado"
+    ) {
+      return response.status(400).json({
+        error:
+          "Ops! Aprendiz e Estágiarios podem apenas ser cadastrados como mentorados.",
+      });
+    }
+
+    if (
+      cargoId.nome_cargo !== "Aprendiz" &&
+      cargoId.nome_cargo !== "Estagiário" &&
+      tipo_usuario === "Mentorado"
+    ) {
+      return response.status(400).json({
+        error: `Ops! O cargo "${cargoId.nome_cargo}" não pode ser cadastrado como mentorado.`,
+      });
     }
 
     const newDadosColaborador = {
