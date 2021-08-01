@@ -225,7 +225,8 @@ pdiRouter.get(
         "colaborador.tipo_usuario",
         "trilha.descricao",
         "prazo.nome_prazo",
-        "cargo.nome_cargo"
+        "cargo.nome_cargo",
+        "departamento.nome_departamento"
       )
       .leftJoin(
         "colaborador",
@@ -236,6 +237,12 @@ pdiRouter.get(
       .leftJoin("trilha", "pdi.trilha_id", "=", "trilha.id")
       .leftJoin("prazo", "trilha.prazo_id", "=", "prazo.id")
       .leftJoin("cargo", "colaborador.id", "=", "cargo.id")
+      .leftJoin(
+        "departamento",
+        "trilha.departamento_id",
+        "=",
+        "departamento.id"
+      )
       .where({ "pdi.mentorado_id": id, "pdi.status": "Ativo" })
       .first();
 
@@ -259,12 +266,15 @@ pdiRouter.get("/mentored/:id", async (request: Request, response: Response) => {
       "colaborador.foto",
       "colaborador.tipo_usuario",
       "trilha.descricao",
-      "prazo.nome_prazo"
+      "prazo.nome_prazo",
+      "departamento.nome_departamento"
     )
     .leftJoin("colaborador", "pdi.mentor_responsavel_id", "=", "colaborador.id")
     .leftJoin("trilha", "pdi.trilha_id", "=", "trilha.id")
     .leftJoin("prazo", "trilha.prazo_id", "=", "prazo.id")
-    .where({ "pdi.mentorado_id": id });
+    .leftJoin("departamento", "trilha.departamento_id", "=", "departamento.id")
+    .where({ "pdi.mentorado_id": id })
+    .orderBy("id", "desc");
 
   return response.json(selectedPdi);
 });
