@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string("cargo", 50).notNullable();
     table.string("email", 100).notNullable();
     table.string("senha", 100).notNullable();
-    table.string("celular", 14).notNullable();
+    table.string("celular", 11).notNullable();
     table.integer("empresa_id").unsigned().references("id").inTable("empresa");
   });
 }
