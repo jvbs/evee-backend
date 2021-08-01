@@ -23,18 +23,36 @@ authRouter.get("/check", async (request, response) => {
 
     if (Number(userType) === 1) {
       // usuario
-      var dbUser = await knex("usuario").where("id", userId).first();
+      var dbUser = await knex("usuario")
+        .select(
+          "usuario.*",
+          { empresaId: "empresa.id" },
+          "empresa.nome_razao_social",
+          "empresa.cnpj"
+        )
+        .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id")
+        .where("usuario.id", userId)
+        .first();
     } else {
       // colaborador
       var dbUser = await knex("colaborador")
+        .select(
+          "colaborador.*",
+          { empresaId: "empresa.id" },
+          "empresa.nome_razao_social",
+          "empresa.cnpj",
+          "cargo.nome_cargo",
+          "departamento.nome_departamento"
+        )
+        .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+        .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
         .leftJoin(
           "departamento",
           "colaborador.departamento_id",
           "=",
           "departamento.id"
         )
-        .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
-        .where("id", userId)
+        .where("colaborador.id", userId)
         .first();
     }
 
@@ -42,17 +60,27 @@ authRouter.get("/check", async (request, response) => {
       token,
       user: {
         id: dbUser.id,
+        cpf: dbUser.cpf,
         nome: dbUser.nome,
         userType: Number(userType) === 1 ? "Admin" : dbUser.tipo_usuario,
         email: dbUser.email,
+        celular: dbUser.celular,
+        foto: dbUser.foto,
         cargo: Number(userType) === 1 ? dbUser.cargo : dbUser.nome_cargo,
+        status: Number(userType) === 1 ? 1 : Number(dbUser.status),
+        cargo_id: dbUser.cargo_id,
+        departamento_id: dbUser.departamento_id,
         departamento:
           Number(userType) === 1 ? "Administrador" : dbUser.nome_departamento,
         empresa_id:
           Number(userType) === 1 ? dbUser.empresa_id : dbUser.empresa_id,
+        nome_empresa:
+          Number(userType) === 1
+            ? dbUser.nome_razao_social
+            : dbUser.nome_razao_social,
       },
     };
-
+    // console.log(userReturn);
     return response.json(userReturn);
   } catch (error) {
     return response.status(401).json({ message: "JWT Token Inválido." });
@@ -62,9 +90,41 @@ authRouter.get("/check", async (request, response) => {
 authRouter.post("/", async (request, response) => {
   const { email, senha } = request.body;
 
-  const checkUsuario = await knex("usuario").where("email", email).first();
-  const checkColaborador = await knex("colaborador")
+  const checkUsuario = await knex("usuario")
+    .select(
+      "usuario.id",
+      "usuario.nome",
+      "usuario.cargo",
+      "usuario.email",
+      "usuario.celular",
+      "usuario.foto",
+      "usuario.senha",
+      { empresaId: "empresa.id" },
+      "empresa.nome_razao_social",
+      "empresa.cnpj"
+    )
+    .leftJoin("empresa", "usuario.empresa_id", "=", "empresa.id")
     .where("email", email)
+    .first();
+
+  const checkColaborador = await knex("colaborador")
+    .select(
+      "colaborador.*",
+      { empresaId: "empresa.id" },
+      "empresa.nome_razao_social",
+      "empresa.cnpj",
+      "cargo.nome_cargo",
+      "departamento.nome_departamento"
+    )
+    .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+    .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+    .leftJoin(
+      "departamento",
+      "colaborador.departamento_id",
+      "=",
+      "departamento.id"
+    )
+    .where({ email: email, status: 1 })
     .first();
 
   if (!checkUsuario && !checkColaborador) {
@@ -126,11 +186,24 @@ authRouter.post("/", async (request, response) => {
     token,
     user: {
       id: userType === 1 ? checkUsuario.id : checkColaborador.id,
+      cpf: userType === 1 ? "" : checkColaborador.cpf,
       nome: userType === 1 ? checkUsuario.nome : checkColaborador.nome,
       userType: userType === 1 ? "Admin" : checkColaborador.tipo_usuario,
+      cargo: userType === 1 ? "Administrador" : checkColaborador.nome_cargo,
+      foto: userType === 1 ? checkUsuario.foto : null,
+      departamento:
+        userType === 1 ? "Administrador" : checkColaborador.nome_departamento,
+      cargo_id: userType === 1 ? "" : checkColaborador.cargo_id,
+      status: userType === 1 ? 1 : checkColaborador.status,
+      departamento_id: userType === 1 ? "" : checkColaborador.departamento_id,
       email,
+      celular: userType === 1 ? checkUsuario.celular : checkColaborador.celular,
+      nome_empresa:
+        userType === 1
+          ? checkUsuario.nome_razao_social
+          : checkColaborador.nome_razao_social,
       empresa_id:
-        userType === 1 ? checkUsuario.empresa_id : checkColaborador.empresa_id,
+        userType === 1 ? checkUsuario.empresaId : checkColaborador.empresaId,
     },
   };
 

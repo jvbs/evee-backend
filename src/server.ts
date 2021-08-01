@@ -1,10 +1,12 @@
-// import express, { Router } from "express";
 import express from "express";
 import path from "path";
+import * as dotenv from "dotenv";
 import cors from "cors";
 import { errors as JoiErrors } from "celebrate";
 
 const port = process.env.PORT || 8080;
+
+dotenv.config({ path: `${process.cwd()}/.env` });
 
 import routes from "./routes";
 
