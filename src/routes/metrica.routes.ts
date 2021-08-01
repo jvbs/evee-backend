@@ -50,7 +50,8 @@ metricaRouter.get(
 
     const metricasDpto = await knex.raw(
       "SELECT 	sum(case when b.nome_cargo = 'Aprendiz' then 1 else 0 end) as aprendizes, \
-		sum(case when b.nome_cargo = 'Estagiário' then 1 else 0 end) as estagiarios \
+		sum(case when b.nome_cargo = 'Estagiário' then 1 else 0 end) as estagiarios, \
+    sum(case when a.tipo_usuario = 'Mentor' then 1 else 0 end) as mentores \
 FROM colaborador a \
 left join cargo b \
 on a.cargo_id = b.id where a.empresa_id = ? and a.departamento_id = ?",
