@@ -8,9 +8,9 @@ export async function seed(knex: Knex): Promise<void> {
   await knex("tipo_trilha").insert([
     { nome_trilha: "Trilha - Básico I" },
     { nome_trilha: "Trilha - Básico II" },
-    { nome_trilha: "Trilha - Intermediario I" },
-    { nome_trilha: "Trilha - Intermediario II" },
-    { nome_trilha: "Trilha - Avancado I" },
-    { nome_trilha: "Trilha - Avancado II" },
+    { nome_trilha: "Trilha - Intermediário I" },
+    { nome_trilha: "Trilha - Intermediário II" },
+    { nome_trilha: "Trilha - Avançado I" },
+    { nome_trilha: "Trilha - Avançado II" },
   ]);
 }
