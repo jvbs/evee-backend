@@ -548,7 +548,7 @@ colaboradorRouter.post(
     ) {
       return response.status(400).json({
         error:
-          "Ops! Aprendiz e Estágiarios podem apenas ser cadastrados como mentorados.",
+          "Ops! Aprendiz e Estagiários podem apenas ser cadastrados como mentorados.",
       });
     }
 
