@@ -274,6 +274,7 @@ pdiRouter.get("/mentored/:id", async (request: Request, response: Response) => {
     .leftJoin("prazo", "trilha.prazo_id", "=", "prazo.id")
     .leftJoin("departamento", "trilha.departamento_id", "=", "departamento.id")
     .where({ "pdi.mentorado_id": id })
+    .whereNotIn("pdi.status", ["Ativo"])
     .orderBy("id", "desc");
 
   return response.json(selectedPdi);
