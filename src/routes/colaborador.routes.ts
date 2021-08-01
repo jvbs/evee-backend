@@ -541,8 +541,6 @@ colaboradorRouter.post(
       return response.status(400).json({ error: "E-mail já cadastrado." });
     }
 
-    console.log(cargoId);
-
     if (
       (cargoId.nome_cargo === "Aprendiz" ||
         cargoId.nome_cargo === "Estagiário") &&
