@@ -15,7 +15,7 @@ export async function seed(knex: Knex): Promise<void> {
     { nome_departamento: "Logística" },
     { nome_departamento: "Marketing" },
     { nome_departamento: "Mídias Sociais" },
-    { nome_departamento: "Recursos Humanos" },
+    { nome_departamento: "RH" },
     { nome_departamento: "TI - Desenvolvimento" },
     { nome_departamento: "TI - Gestão e Processos" },
     { nome_departamento: "TI - Infraestrutura" },
