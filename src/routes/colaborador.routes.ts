@@ -518,28 +518,47 @@ colaboradorRouter.post(
       .where("id", departamento_id)
       .first();
     const cpfColaborador = await knex("colaborador").where("cpf", cpf).first();
+    const emailColaborador = await knex("colaborador")
+      .where("email", email)
+      .first();
     const cpfIsValid: boolean = cpfValidator.isValid(cpf);
 
-    if (
-      !empresaId ||
-      !cargoId ||
-      !departamentoId ||
-      !cpfIsValid ||
-      cpfColaborador
-    ) {
+    if (!empresaId || !cargoId || !departamentoId) {
       return response
         .status(400)
         .json({ error: "Argumentos inválidos para a requisição." });
     }
 
-    if ((cargo_id === 35 || cargo_id === 36) && tipo_usuario !== "Mentorado") {
+    if (!cpfIsValid) {
+      return response.status(400).json({ error: "CPF inválido." });
+    }
+
+    if (cpfColaborador) {
+      return response.status(400).json({ error: "CPF já cadastrado." });
+    }
+
+    if (emailColaborador) {
+      return response.status(400).json({ error: "E-mail já cadastrado." });
+    }
+
+    console.log(cargoId);
+
+    if (
+      (cargoId.nome_cargo === "Aprendiz" ||
+        cargoId.nome_cargo === "Estagiário") &&
+      tipo_usuario !== "Mentorado"
+    ) {
       return response.status(400).json({
         error:
           "Ops! Aprendiz e Estágiarios podem apenas ser cadastrados como mentorados.",
       });
     }
 
-    if (cargo_id !== 35 && cargo_id !== 36 && tipo_usuario === "Mentorado") {
+    if (
+      cargoId.nome_cargo !== "Aprendiz" &&
+      cargoId.nome_cargo !== "Estagiário" &&
+      tipo_usuario === "Mentorado"
+    ) {
       return response.status(400).json({
         error: `Ops! O cargo "${cargoId.nome_cargo}" não pode ser cadastrado como mentorado.`,
       });
