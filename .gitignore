@@ -125,5 +125,3 @@ uploads/profile-pictures/*
 !uploads/profile-pictures/Readme.md
 
 knexfile.ts
-knexfile.js
-
