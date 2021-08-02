@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
     table.date("data_nascimento").notNullable();
     table.string("email", 100).notNullable();
     table.string("senha", 100).notNullable();
-    table.string("celular", 14).notNullable();
+    table.string("celular", 11).notNullable();
     table.string("foto", 50).notNullable();
     table.enum("tipo_usuario", ["Comum", "Mentor", "Mentorado"]).notNullable();
     table
