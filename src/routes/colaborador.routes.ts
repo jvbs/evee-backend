@@ -84,6 +84,53 @@ colaboradorRouter.get("/", async (request: Request, response: Response) => {
 colaboradorRouter.get(
   "/mentores",
   async (request: Request, response: Response) => {
+    const { empresa_id, departamento_id } = request.query;
+
+    if (!empresa_id || !departamento_id) {
+      return response.status(400).json({
+        message: "Argumentos inválidos para a requisição.",
+      });
+    }
+
+    const checkEmpresa = await knex("empresa")
+      .where("id", Number(empresa_id))
+      .first();
+
+    if (!checkEmpresa) {
+      return response.status(400).json({
+        message: "Empresa inválida.",
+      });
+    }
+
+    const colaborador = await knex("colaborador")
+      .select(
+        "colaborador.*",
+        "empresa.nome_razao_social",
+        "departamento.nome_departamento",
+        "cargo.nome_cargo"
+      )
+      .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+      .leftJoin(
+        "departamento",
+        "colaborador.departamento_id",
+        "=",
+        "departamento.id"
+      )
+      .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+      .where({
+        tipo_usuario: "Mentor",
+        empresa_id: Number(empresa_id),
+        departamento_id: Number(departamento_id),
+      });
+
+    return response.json(colaborador);
+  }
+);
+
+// Listar todos os mentores
+colaboradorRouter.get(
+  "/mentores/all",
+  async (request: Request, response: Response) => {
     const { empresa_id } = request.query;
 
     if (!empresa_id) {
@@ -273,7 +320,7 @@ colaboradorRouter.get(
 
 // Listar todos os mentorados
 colaboradorRouter.get(
-  "/mentorados",
+  "/mentorados/all",
   async (request: Request, response: Response) => {
     const { empresa_id } = request.query;
 
@@ -311,6 +358,53 @@ colaboradorRouter.get(
       .where({
         tipo_usuario: "Mentorado",
         "colaborador.empresa_id": Number(empresa_id),
+      });
+
+    return response.json(colaborador);
+  }
+);
+
+// Listar todos os mentorados
+colaboradorRouter.get(
+  "/mentorados",
+  async (request: Request, response: Response) => {
+    const { empresa_id, departamento_id } = request.query;
+
+    if (!empresa_id || !departamento_id) {
+      return response.status(400).json({
+        message: "Argumentos inválidos para a requisição.",
+      });
+    }
+
+    const checkEmpresa = await knex("empresa")
+      .where("id", Number(empresa_id))
+      .first();
+
+    if (!checkEmpresa) {
+      return response.status(400).json({
+        message: "Empresa inválida.",
+      });
+    }
+
+    const colaborador = await knex("colaborador")
+      .select(
+        "colaborador.*",
+        "empresa.nome_razao_social",
+        "departamento.nome_departamento",
+        "cargo.nome_cargo"
+      )
+      .leftJoin("empresa", "colaborador.empresa_id", "=", "empresa.id")
+      .leftJoin(
+        "departamento",
+        "colaborador.departamento_id",
+        "=",
+        "departamento.id"
+      )
+      .leftJoin("cargo", "colaborador.cargo_id", "=", "cargo.id")
+      .where({
+        tipo_usuario: "Mentorado",
+        "colaborador.empresa_id": Number(empresa_id),
+        "colaborador.departamento_id": Number(departamento_id),
       });
 
     return response.json(colaborador);
